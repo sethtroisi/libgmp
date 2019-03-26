@@ -1,3 +1,9 @@
+2019-03-24 Seth Troisi <sethtroisi@google.com>
+
+	* tune/common.c (speed_mpn_perfect_power_p): New functions.
+	* tune/speed.h: Declare it.
+	* tune/speed.c (routine): Add mpn_perfect_power_p .
+
 2018-11-30  Torbjörn Granlund  <tg@gmplib.org>
 
 	* mpn/powerpc64/mode64/p9/gmp-mparam.h: New file.
