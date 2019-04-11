@@ -1,9 +1,10 @@
-/* mpz_millerrabin(n,reps) -- An implementation of the probabilistic primality
-   test found in Knuth's Seminumerical Algorithms book.  If the function
-   mpz_millerrabin() returns 0 then n is not prime.  If it returns 1, then n is
-   'probably' prime.  The probability of a false positive is (1/4)**reps, where
-   reps is the number of internal passes of the probabilistic algorithm.  Knuth
-   indicates that 25 passes are reasonable.
+/* mpz_millerrabin(n,reps) --
+   An implementation of the probabilistic primality test found in Knuth's
+   Seminumerical Algorithms book.  If the function mpz_probab_prime_p()
+   returns 0 then n is not prime.  If it returns 1, then n is 'probably'
+   prime. The probability of a false positive is (1/4)**reps,
+   where reps is the number of internal passes of the
+   probabilistic algorithm.  Knuth indicates that 25 passes are reasonable.
 
    THE FUNCTIONS IN THIS FILE ARE FOR INTERNAL USE ONLY.  THEY'RE ALMOST
    CERTAIN TO BE SUBJECT TO INCOMPATIBLE CHANGES OR DISAPPEAR COMPLETELY IN
