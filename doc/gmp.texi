@@ -8934,18 +8934,25 @@ current size of the cofactors.
 @subsection Jacobi Symbol
 @cindex Jacobi symbol algorithm
 
-@code{mpz_jacobi} and @code{mpz_kronecker} use a subquadratic
-algorithm based on HGCD (@pxref{Subquadratic GCD}).  Much of the HGCD code is
-shared directly between the implementations, such as the
-@xref{Lehmer's Algorithm} basecase and @code{GCD_DC_THRESHOLD}.
+For inputs larger than @code{GCD_DC_THRESHOLD}, @code{mpz_jacobi},
+@code{mpz_legendre} and @code{mpz_kronecker} are computed via the HGCD (Half 
+GCD) function, as a generalization to Lehmer's algorithm.
 
-If one operand fits in a single limb, an initial reduction is done with either
-@code{mpn_mod_1} or @code{mpn_modexact_1_odd}, followed by the binary algorithm
-on a single limb.  The binary algorithm is well suited to a single limb, and
-the whole calculation in this case is quite efficient.
+Much of the HGCD code is shared directly with the HGCD implementations, such 
+as the 2x2 matrix calculation, @xref{Lehmer's Algorithm} basecase and
+@code{GCD_DC_THRESHOLD}.
+
+The asymptotic running time is @m{O(M(N)\log N),O(M(N)*log(N))}, where
+@math{M(N)} is the time for multiplying two @math{N}-limb numbers.
+
+Initially if either operand fits in a single limb, a reduction is done with
+either @code{mpn_mod_1} or @code{mpn_modexact_1_odd}, followed by the binary
+algorithm on a single limb.  The binary algorithm is well suited to a single limb,
+and the whole calculation in this case is quite efficient.
 
 In all the routines sign changes for the result are accumulated using some bit
-twiddling, avoiding table lookups or conditional jumps.
+twiddling which avoids conditional jumps.
+
 
 
 @need 1000
