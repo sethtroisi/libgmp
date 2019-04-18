@@ -8934,11 +8934,50 @@ current size of the cofactors.
 @subsection Jacobi Symbol
 @cindex Jacobi symbol algorithm
 
+@c Editor Note: I don't see other people defining the inputs, it would be nice
+@c here because the code uses (a/b) where other references use (n/k)
+
+Jacobi symbol @m{\left(a \over b\right), (@var{a}/@var{b})}
+
 For inputs larger than @code{GCD_DC_THRESHOLD}, @code{mpz_jacobi},
-@code{mpz_legendre} and @code{mpz_kronecker} are computed via the HGCD (Half 
+@code{mpz_legendre} and @code{mpz_kronecker} are computed via the HGCD (Half
 GCD) function, as a generalization to Lehmer's algorithm.
 
-Much of the HGCD code is shared directly with the HGCD implementations, such 
+Most GCD algorithms reduces @math{a} and @math{b} with a sequence of reductions
+
+@m{a_{n+1}@C{} b_{n+1} = b_{n}@C{} a_{n} - m * b_{n},
+a[n+1]@C{} b[n+1] = b[n]@C{} a[n] - m * b[n]}
+
+Different algorithms use different methods for calculating m, but the core
+algorithm is the same if we use @ref{Binary GCD}, @ref{Lehmer's Algorithm},
+or @ref{Subquadratic GCD, HGCD}.
+
+At each step it is possible to compute if the reduction inverts the Jacobi
+symbol based on only the final two bits of @var{a} and @var{b}.
+
+@c Editor Note: It would be nice to like to Niels's draft paper
+@c For Proposition 1 (v) and (vi)
+@c https://gmplib.org/list-archives/gmp-bugs/attachments/20170821/bfac90c6/attachment-0001.pdf
+
+A small set of bits is thus used to track state
+@itemize
+@item
+current sign of result (1 bit)
+
+@item
+two least significant bits of @var{a} and @var{b} (4 bits)
+
+@item
+a pointer to which input is currently the denominator (1 bit)
+@end itemize
+
+In all the routines sign changes for the result are accumulated using fast bit
+twiddling which avoids conditional jumps.
+
+The final result is calculated after verifying the GCD is 1 and raising
+@m{(-1)^e,(-1)^e}
+
+Much of the HGCD code is shared directly with the HGCD implementations, such
 as the 2x2 matrix calculation, @xref{Lehmer's Algorithm} basecase and
 @code{GCD_DC_THRESHOLD}.
 
@@ -8949,11 +8988,6 @@ Initially if either operand fits in a single limb, a reduction is done with
 either @code{mpn_mod_1} or @code{mpn_modexact_1_odd}, followed by the binary
 algorithm on a single limb.  The binary algorithm is well suited to a single limb,
 and the whole calculation in this case is quite efficient.
-
-In all the routines sign changes for the result are accumulated using some bit
-twiddling which avoids conditional jumps.
-
-
 
 @need 1000
 @node Powering Algorithms, Root Extraction Algorithms, Greatest Common Divisor Algorithms, Algorithms
