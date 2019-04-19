@@ -8945,15 +8945,15 @@ GCD) function, as a generalization to Lehmer's algorithm.
 
 Most GCD algorithms reduces @math{a} and @math{b} with a sequence of reductions
 
-@m{a_{n+1}@C{} b_{n+1} = b_{n}@C{} a_{n} - m * b_{n},
-a[n+1]@C{} b[n+1] = b[n]@C{} a[n] - m * b[n]}
+@c TODO add tex later
+@math{a, b = b, a' with a' = a - q * b, q = floor(a/b)}
 
-Different algorithms use different methods for calculating m, but the core
-algorithm is the same if we use @ref{Binary GCD}, @ref{Lehmer's Algorithm},
-or @ref{Subquadratic GCD, HGCD}.
+Different algorithms use different methods for calculating q, but the core
+algorithm is the same if we use @ref{Lehmer's Algorithm} or
+@ref{Subquadratic GCD, HGCD}.
 
 At each step it is possible to compute if the reduction inverts the Jacobi
-symbol based on only the final two bits of @var{a} and @var{b}.
+symbol based on the two least significant bits of @var{a} and @var{b}.
 
 @c Editor Note: It would be nice to like to Niels's draft paper
 @c For Proposition 1 (v) and (vi)
@@ -8974,8 +8974,8 @@ a pointer to which input is currently the denominator (1 bit)
 In all the routines sign changes for the result are accumulated using fast bit
 twiddling which avoids conditional jumps.
 
-The final result is calculated after verifying the GCD is 1 and raising
-@m{(-1)^e,(-1)^e}
+The final result is calculated after verifying the inputs are coprime (GCD = 1)
+by raising @m{(-1)^e,(-1)^e}
 
 Much of the HGCD code is shared directly with the HGCD implementations, such
 as the 2x2 matrix calculation, @xref{Lehmer's Algorithm} basecase and
