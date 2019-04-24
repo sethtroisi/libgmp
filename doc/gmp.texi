@@ -3565,6 +3565,11 @@ practical purposes it's adequate, the chance of a composite passing will be
 extremely small.
 @end deftypefun
 
+@deftypefun void mpz_nthprime_ui (mpz_t @var{rop}, unsigned long int @var{n})
+@cindex Nth prime function
+Set @var{rop} to the @var{n}th prime.
+@end deftypefun
+
 @c mpz_prime_p not implemented as of gmp 3.0.
 
 @c @deftypefun int mpz_prime_p (const mpz_t @var{n})
