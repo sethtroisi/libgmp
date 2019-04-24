@@ -102,6 +102,7 @@ gmp_nextprime (gmp_primesieve_t *ps)
   while ((ps->sqrt_s0 + 1) * (ps->sqrt_s0 + 1) <= ps->s0 + 2 * SIEVESIZE - 1)
     ps->sqrt_s0++;
 
+  // Mark off multiples of 3
   pi = ((ps->s0 + 3) / 2) % 3;
   if (pi > 0)
     pi = 3 - pi;
@@ -113,6 +114,7 @@ gmp_nextprime (gmp_primesieve_t *ps)
       *sp = 1, sp += 3;
     }
 
+  // Mark off multiples of 5
   pi = ((ps->s0 + 5) / 2) % 5;
   if (pi > 0)
     pi = 5 - pi;
@@ -124,6 +126,7 @@ gmp_nextprime (gmp_primesieve_t *ps)
       *sp = 1, sp += 5;
     }
 
+  // Mark off multiples of 7
   pi = ((ps->s0 + 7) / 2) % 7;
   if (pi > 0)
     pi = 7 - pi;
@@ -139,6 +142,7 @@ gmp_nextprime (gmp_primesieve_t *ps)
   ai = 0;
   while (p <= ps->sqrt_s0)
     {
+      // Mark off multiples of p
       pi = ((ps->s0 + p) / 2) % p;
       if (pi > 0)
 	pi = p - pi;

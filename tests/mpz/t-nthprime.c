@@ -36,6 +36,7 @@ void check_one(long n, long want) {
   mpz_nthprime_ui(got, n);
   MPZ_CHECK_FORMAT (got);
 
+  printf ("mpz_nthprime_ui(%lu) ?= %lu\n", n, want > 0 ? want : 0);
   if (!mpz_probab_prime_p(got, 25))
     {
       printf ("mpz_nthprime_ui not prime\n");
@@ -65,15 +66,19 @@ check_data (void)
     int n;
     long want;
   } data[] = {
-    { 1,      2 },
-    { 2,      3 },
-    { 3,      5 },
-    { 4,      7 },
-    { 10,     29 },
-    { 25,     97 },
-    { 100,    541 },
-    { 1000,   7919 },
-    { 3141,   28843 },
+    { 1,        2 },
+    { 2,        3 },
+    { 3,        5 },
+    { 4,        7 },
+    { 10,       29 },
+    { 25,       97 },
+    { 100,      541 },
+    { 1000,     7919 },
+    { 3141,     28843 },
+    { 10000,    104729 },
+    { 78499,    1000003 },
+    { 1000000,  15485863 },
+    { 2718281,  45001883 },
   };
 
   for (int i = 0; i < numberof (data); i++)
@@ -105,7 +110,7 @@ void check_zero (void)
 void
 check_small (void)
 {
-  for (int i = 1; i < 1000; i++)
+  for (int i = 1; i < 500; i += 5)
     {
       check_one(i, -1);
     }

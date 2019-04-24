@@ -58,9 +58,23 @@ mpz_nthprime_ui (mpz_ptr p, unsigned long n)
   MPZ_NEWALLOC (p, 1)[0] = 1;
   SIZ (p) = 1;
 
-  // Simple proof of concept implementation, soon to be replaced.
+#if 0
   while (n-- > 0)
     {
       mpz_nextprime(p, p);
     }
+  return;
+#endif
+
+  gmp_primesieve_t ps;
+  gmp_init_primesieve (&ps);
+
+  while (n-- > 1)
+    {
+      gmp_nextprime (&ps);
+    }
+
+  PTR (p)[0] = gmp_nextprime (&ps);
+
+  return;
 }
