@@ -335,6 +335,8 @@ mpz_nthprime_ui (mpz_ptr p, unsigned long n)
 
   TMP_FREE;
 
+  // TODO make this support prev prime.
+  SIZ(p) = 1;
   PTR (p)[0] = Y;
   for (int i = 0; i < delta2; i++)
     {
