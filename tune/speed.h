@@ -396,6 +396,7 @@ double speed_mpz_fib_ui (struct speed_params *);
 double speed_mpz_fib2_ui (struct speed_params *);
 double speed_mpz_init_clear (struct speed_params *);
 double speed_mpz_init_realloc_clear (struct speed_params *);
+double speed_mpz_nextprime (struct speed_params *);
 double speed_mpz_jacobi (struct speed_params *);
 double speed_mpz_lucnum_ui (struct speed_params *);
 double speed_mpz_lucnum2_ui (struct speed_params *);
@@ -3096,6 +3097,32 @@ int speed_routine_count_zeros_setup (struct speed_params *, mp_ptr, int, int);
     TMP_FREE;								\
 									\
     s->time_divisor = pieces;						\
+    return t;								\
+  }
+
+/* Calculate nextprime(n) for random n of s->size bits (not limbs). */
+#define SPEED_ROUTINE_MPZ_NEXTPRIME(function)				\
+  {									\
+    unsigned  i;							\
+    mpz_t     n, wp;							\
+    double    t;							\
+									\
+    SPEED_RESTRICT_COND (s->size >= 1);					\
+									\
+    mpz_init (wp);							\
+    mpz_init_set_n (n, s->xp, s->size);					\
+    /* limit to s->size bits, as this function is very slow */		\
+    mpz_tdiv_r_2exp (n, n, s->size);					\
+									\
+    speed_starttime ();							\
+    i = s->reps;							\
+    do									\
+      function (wp, n);							\
+    while (--i != 0);							\
+    t = speed_endtime ();						\
+									\
+    mpz_clear (n);							\
+    mpz_clear (wp);							\
     return t;								\
   }
 
