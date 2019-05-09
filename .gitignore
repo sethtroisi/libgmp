@@ -1,0 +1,8 @@
+Makefile.in
+build/
+.gdbinit
+.hg/
+.hgignore
+.hgtags
+
+*/Makefile.in
