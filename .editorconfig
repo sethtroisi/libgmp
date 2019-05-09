@@ -1,0 +1,7 @@
+# Matches multiple files with brace expansion notation
+[*.{c,h,cc}]
+charset = utf-8
+indent_style = tab
+indent_size = 8
+trim_trailing_whitespace = true
+
