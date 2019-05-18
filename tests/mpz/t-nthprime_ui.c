@@ -68,6 +68,10 @@ check_data (void)
     { 100,    541 },
     { 1000,   7919 },
     { 3141,   28843 },
+    { 10000,    104729 },
+    { 78499,    1000003 },
+    { 1000000,  15485863 },
+    { 2718281,  45001883 },
   };
 
   for (int i = 0; i < numberof (data); i++)
@@ -103,7 +107,7 @@ check_small (void)
   mpz_t test;
   mpz_init_set_ui(test, 1);
 
-  for (int i = 1; i < 1000; i++)
+  for (int i = 1; i < 5000; i++)
     {
       mpz_nextprime(test, test);
 

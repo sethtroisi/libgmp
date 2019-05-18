@@ -36,7 +36,6 @@ see https://www.gnu.org/licenses/.  */
 
 /* Enhancements:
 
-   - Use sieve for smallish n
    - Use precomputed lookup values as started point
    - Implement a more modern algorithm */
 
@@ -60,9 +59,14 @@ mpz_nthprime_ui (mpz_ptr p, unsigned long n)
       return;
     }
 
-  /* Simple proof of concept implementation, soon to be replaced. */
-  while (n-- > 0)
+  /* Simple sieve implementation. */
+  gmp_primesieve_t ps;
+  gmp_init_primesieve (&ps);
+
+  while (n-- > 1)
     {
-      mpz_nextprime(p, p);
+      gmp_nextprime (&ps);
     }
+
+  PTR (p)[0] = gmp_nextprime (&ps);
 }
