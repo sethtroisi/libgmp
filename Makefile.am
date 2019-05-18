@@ -200,7 +200,8 @@ MPZ_OBJECTS = mpz/abs$U.lo mpz/add$U.lo mpz/add_ui$U.lo			\
   mpz/millerrabin$U.lo mpz/mod$U.lo mpz/mul$U.lo mpz/mul_2exp$U.lo	\
   mpz/mul_si$U.lo mpz/mul_ui$U.lo					\
   mpz/n_pow_ui$U.lo mpz/neg$U.lo mpz/nextprime$U.lo			\
-  mpz/out_raw$U.lo mpz/out_str$U.lo mpz/perfpow$U.lo mpz/perfsqr$U.lo	\
+  mpz/nthprime_ui$U.lo mpz/out_raw$U.lo mpz/out_str$U.lo		\
+  mpz/perfpow$U.lo mpz/perfsqr$U.lo					\
   mpz/popcount$U.lo mpz/pow_ui$U.lo mpz/powm$U.lo mpz/powm_sec$U.lo	\
   mpz/powm_ui$U.lo mpz/primorial_ui$U.lo				\
   mpz/pprime_p$U.lo mpz/random$U.lo mpz/random2$U.lo			\
