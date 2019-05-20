@@ -33,6 +33,43 @@ refmpz_nextprime (mpz_ptr p, mpz_srcptr t)
 }
 
 void
+test_hugegap ()
+{
+  /* Testing a large gap choosen from http://www.trnicely.net/#TPG
+      start = 2000497*2087#/21210 - 28874 with gap = 70862
+      takes ~50 seconds
+   */
+  mpz_t p, next, diff;
+  int gap;
+  mpz_init (p);
+  mpz_init (next);
+  mpz_init (diff);
+
+  mpz_primorial_ui (p, 2087);
+  mpz_divexact_ui (p, p, 21210);
+  mpz_mul_ui (p, p, 2000497);
+  mpz_sub_ui (p, p, 28874);
+
+  mpz_nextprime (next, p);
+
+  mpz_sub (diff, next, p);
+  gap = mpz_get_ui (diff);
+
+
+  if (!mpz_probab_prime_p (p, 10) || !mpz_probab_prime_p (next, 10))
+    {
+      gmp_printf ("p/next not prime, diff=%lu\n", gap);
+      abort ();
+    }
+
+  if (gap != 70862)
+    {
+      gmp_printf ("hugegap diff discrepancy %lu != 70862\n", gap);
+      abort ();
+    }
+}
+
+void
 run (const char *start, int reps, const char *end, short diffs[])
 {
   mpz_t x, y;
@@ -128,6 +165,8 @@ main (int argc, char **argv)
   mpz_clear (x);
   mpz_clear (nxtp);
   mpz_clear (ref_nxtp);
+
+  test_hugegap ();
 
   tests_end ();
   return 0;
