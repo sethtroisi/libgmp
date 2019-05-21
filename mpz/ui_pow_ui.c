@@ -32,7 +32,7 @@ see https://www.gnu.org/licenses/.  */
 
 
 void
-mpz_ui_pow_ui (mpz_ptr r, unsigned long b, unsigned long e)
+mpz_ui_pow_ui (mpz_ptr r, unsigned long int b, unsigned long int e)
 {
 #if GMP_NAIL_BITS != 0
   if (b > GMP_NUMB_MAX)

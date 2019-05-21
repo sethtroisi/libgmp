@@ -52,7 +52,7 @@ see https://www.gnu.org/licenses/.  */
    WARNING: it assumes that n fits in a limb!
  */
 void
-mpz_fac_ui (mpz_ptr x, unsigned long n)
+mpz_fac_ui (mpz_ptr x, unsigned long int n)
 {
   static const mp_limb_t table[] = { ONE_LIMB_FACTORIAL_TABLE };
 

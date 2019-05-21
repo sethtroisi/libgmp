@@ -52,7 +52,7 @@ see https://www.gnu.org/licenses/.  */
 /* mpz_mfac_uiui (x, n, m) computes x = n!^(m) = n*(n-m)*(n-2m)*...   */
 
 void
-mpz_mfac_uiui (mpz_ptr x, unsigned long n, unsigned long m)
+mpz_mfac_uiui (mpz_ptr x, unsigned long int n, unsigned long int m)
 {
   ASSERT (n <= GMP_NUMB_MAX);
   ASSERT (m != 0);

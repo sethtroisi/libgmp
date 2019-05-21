@@ -54,7 +54,7 @@ see https://www.gnu.org/licenses/.  */
    obviously huge, but probably should be made to work.  */
 
 void
-mpz_lucnum_ui (mpz_ptr ln, unsigned long n)
+mpz_lucnum_ui (mpz_ptr ln, unsigned long int n)
 {
   mp_size_t  lalloc, xalloc, lsize, xsize;
   mp_ptr     lp, xp;

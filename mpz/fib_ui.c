@@ -54,7 +54,7 @@ see https://www.gnu.org/licenses/.  */
    limb of F[4m+1] can certainly be 1, and an mpn_add_1 must be used.  */
 
 void
-mpz_fib_ui (mpz_ptr fn, unsigned long n)
+mpz_fib_ui (mpz_ptr fn, unsigned long int n)
 {
   mp_ptr         fp, xp, yp;
   mp_size_t      size, xalloc;

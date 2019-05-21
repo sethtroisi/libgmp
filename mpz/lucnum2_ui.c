@@ -33,7 +33,7 @@ see https://www.gnu.org/licenses/.  */
 
 
 void
-mpz_lucnum2_ui (mpz_ptr ln, mpz_ptr lnsub1, unsigned long n)
+mpz_lucnum2_ui (mpz_ptr ln, mpz_ptr lnsub1, unsigned long int n)
 {
   mp_ptr     lp, l1p, f1p;
   mp_size_t  size;
