@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+
+BreakBeforeBraces: GNU
+SpaceBeforeParens: Always
+AlwaysBreakAfterReturnType: TopLevel
+
+# Suggestions from Linux Kernel style to test
+# AllowShortIfStatementsOnASingleLine: false
