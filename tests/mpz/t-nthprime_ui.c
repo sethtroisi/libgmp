@@ -19,43 +19,49 @@ the GNU MP Library test suite.  If not, see https://www.gnu.org/licenses/.  */
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "gmp-impl.h"
 #include "tests.h"
 
-
 /* Verify nth_prime(n) = want and isprime(want). */
 void
-check_one (long n, long want) {
+check_one (long n, long want)
+{
   mpz_t got;
-  mpz_init(got);
+  mpz_init (got);
 
-  mpz_nthprime_ui(got, n);
+  mpz_nthprime_ui (got, n);
   MPZ_CHECK_FORMAT (got);
 
-  if (mpz_cmp_si(got, want) != 0)
+  if (mpz_cmp_si (got, want) != 0)
     {
       printf ("mpz_nthprime wrong\n");
       printf ("  n=%lu\n", n);
-      printf ("  got="); mpz_out_str (stdout, 10, got); printf ("\n");
+      printf ("  got=");
+      mpz_out_str (stdout, 10, got);
+      printf ("\n");
       printf ("  want=%lu\n", want);
-      abort();
+      abort ();
     }
 
-  if (!mpz_probab_prime_p(got, 25))
+  if (!mpz_probab_prime_p (got, 25))
     {
       printf ("mpz_nthprime_ui not prime\n");
       printf ("  n=%lu\n", n);
-      printf ("  p="); mpz_out_str (stdout, 10, got); printf ("\n");
-      abort();
+      printf ("  p=");
+      mpz_out_str (stdout, 10, got);
+      printf ("\n");
+      abort ();
     }
 
-  mpz_clear(got);
+  mpz_clear (got);
 }
 
 void
 check_data (void)
 {
-  static const struct {
+  static const struct
+  {
     int n;
     long want;
   } data[] = {
@@ -72,7 +78,7 @@ check_data (void)
 
   for (int i = 0; i < numberof (data); i++)
     {
-      check_one(data[i].n, data[i].want);
+      check_one (data[i].n, data[i].want);
     }
 }
 
@@ -81,19 +87,21 @@ void
 check_zero (void)
 {
   mpz_t test;
-  mpz_init(test);
+  mpz_init (test);
 
-  mpz_nthprime_ui(test, 0);
-  if (mpz_cmp_si(test, 2))
+  mpz_nthprime_ui (test, 0);
+  if (mpz_cmp_si (test, 2))
     {
       printf ("mpz_nthprime_ui(0) != 2\n");
-      printf ("  got  "); mpz_out_str (stdout, 10, test); printf("\n");
+      printf ("  got  ");
+      mpz_out_str (stdout, 10, test);
+      printf ("\n");
       abort ();
     }
 
   MPZ_CHECK_FORMAT (test);
 
-  mpz_clear(test);
+  mpz_clear (test);
 }
 
 /* check small n's. */
@@ -101,16 +109,16 @@ void
 check_small (void)
 {
   mpz_t test;
-  mpz_init_set_ui(test, 1);
+  mpz_init_set_ui (test, 1);
 
   for (int i = 1; i < 1000; i++)
     {
-      mpz_nextprime(test, test);
+      mpz_nextprime (test, test);
 
-      check_one(i, mpz_get_ui(test));
+      check_one (i, mpz_get_ui (test));
     }
 
-  mpz_clear(test);
+  mpz_clear (test);
 }
 
 int

@@ -33,13 +33,11 @@ see https://www.gnu.org/licenses/.  */
 #include "gmp-impl.h"
 #include "longlong.h"
 
-
 /* Enhancements:
 
    - Use sieve for smallish n
    - Use precomputed lookup values as started point
    - Implement a more modern algorithm */
-
 
 void
 mpz_nthprime_ui (mpz_ptr p, unsigned long n)
@@ -63,6 +61,6 @@ mpz_nthprime_ui (mpz_ptr p, unsigned long n)
   /* Simple proof of concept implementation, soon to be replaced. */
   while (n-- > 0)
     {
-      mpz_nextprime(p, p);
+      mpz_nextprime (p, p);
     }
 }
