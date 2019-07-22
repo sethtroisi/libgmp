@@ -8939,23 +8939,34 @@ current size of the cofactors.
 
 Jacobi symbol @m{\left(a \over b\right), (@var{a}/@var{b})}
 
+Initially if either operand fits in a single limb, a reduction is done with
+either @code{mpn_mod_1} or @code{mpn_modexact_1_odd}, followed by the binary
+algorithm on a single limb.  The binary algorithm is well suited to a single limb,
+and the whole calculation in this case is quite efficient.
+
 For inputs larger than @code{GCD_DC_THRESHOLD}, @code{mpz_jacobi},
 @code{mpz_legendre} and @code{mpz_kronecker} are computed via the HGCD (Half
 GCD) function, as a generalization to Lehmer's algorithm.
 
-Most GCD algorithms reduces @math{a} and @math{b} with a sequence of reductions
+Most GCD algorithms reduce @math{a} and @math{b} by repeatatily computing the
+quotient @m{q = \lfloor a/b \rfloor, q = floor(a/b)} and iteratively replacing
 
-@c TODO add tex later
-@math{a, b = b, a' with a' = a - q * b, q = floor(a/b)}
+@c Couldn't figure out macros with commas.
+@tex
+$$ a, b = b, a - q * b$$
+@end tex
+@ifnottex
+@math{a, b = b, a - q * b}
+@end ifnottex
 
 Different algorithms use different methods for calculating q, but the core
 algorithm is the same if we use @ref{Lehmer's Algorithm} or
 @ref{Subquadratic GCD, HGCD}.
 
 At each step it is possible to compute if the reduction inverts the Jacobi
-symbol based on the two least significant bits of @var{a} and @var{b}.
-
-For more details see ``Efficient computation of the Jacobi symbol'' by M@"oller (@pxref{References}).
+symbol based on the two least significant bits of @var{a} and @var{b}.  For
+more details see ``Efficient computation of the Jacobi symbol'' by
+M@"oller (@pxref{References}).
 
 A small set of bits is thus used to track state
 @itemize
@@ -8981,11 +8992,6 @@ as the 2x2 matrix calculation, @xref{Lehmer's Algorithm} basecase and
 
 The asymptotic running time is @m{O(M(N)\log N),O(M(N)*log(N))}, where
 @math{M(N)} is the time for multiplying two @math{N}-limb numbers.
-
-Initially if either operand fits in a single limb, a reduction is done with
-either @code{mpn_mod_1} or @code{mpn_modexact_1_odd}, followed by the binary
-algorithm on a single limb.  The binary algorithm is well suited to a single limb,
-and the whole calculation in this case is quite efficient.
 
 @need 1000
 @node Powering Algorithms, Root Extraction Algorithms, Greatest Common Divisor Algorithms, Algorithms
