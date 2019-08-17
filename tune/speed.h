@@ -3373,19 +3373,17 @@ int speed_routine_count_zeros_setup (struct speed_params *, mp_ptr, int, int);
 
 /* Calculate worst case for perfect_power
    Worst case is multiple prime factors larger than trial div limit. */
-#define SPEED_ROUTINE_MPN_PERFECT_POWER(function)		   	\
+#define SPEED_ROUTINE_MPN_PERFECT_POWER(function)		 	\
   {									\
     mpz_t     r, p;							\
     unsigned  i, power;							\
     double    t;							\
 									\
-    SPEED_RESTRICT_COND (s->size >= 1);					\
+    SPEED_RESTRICT_COND (s->size >= 10);				\
 									\
-    mpz_init(r);							\
-    mpz_init_set_ui (p, 20000);						\
-    mpz_nextprime(p, p);						\
-    mpz_nextprime(r, p);						\
-    power = s->size * GMP_LIMB_BYTES / log2(mpz_get_ui(r));		\
+    mpz_init_set_ui (p, (1 << 16) + 1);	/* larger than 1000th prime */	\
+    mpz_init_set_ui (r, (1 << 17) - 1);					\
+    power = s->size * GMP_NUMB_BITS / 17;				\
     mpz_pow_ui(r, r, power - 1);					\
     mpz_mul(r, r, p);							\
 									\
@@ -3408,12 +3406,9 @@ int speed_routine_count_zeros_setup (struct speed_params *, mp_ptr, int, int);
     unsigned  i, power;							\
     double    t;							\
 									\
-    SPEED_RESTRICT_COND (s->size >= 1);					\
-									\
-    mpz_init_set_ui (r, 20000);						\
-    mpz_nextprime(r, r);						\
-    power = s->size * GMP_LIMB_BYTES / (2 * log2(mpz_get_ui(r)));	\
-    mpz_pow_ui(r, r, 2 * power);					\
+    SPEED_RESTRICT_COND (s->size >= 2);					\
+    mpz_init_set_n (r, s->xp, s->size / 2);				\
+    mpz_pow_ui(r, r, 2);						\
 									\
     speed_starttime ();							\
     i = s->reps;							\
