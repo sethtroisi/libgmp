@@ -84,7 +84,6 @@ mpz_nextprime (mpz_ptr p, mpz_srcptr n)
 
   for (;;)
     {
-      /* FIXME: Compute lazily? */
       prime = 3;
       for (i = 0; i < prime_limit; i++)
 	{
@@ -101,9 +100,6 @@ mpz_nextprime (mpz_ptr p, mpz_srcptr n)
 	  for (i = 0; i < prime_limit; i++)
 	    {
 	      unsigned r;
-	      /* FIXME: Reduce moduli + incr and store back, to allow for
-		 division-free reductions.  Alternatively, table primes[]'s
-		 inverses (mod 2^16).  */
 	      r = (moduli[i] + incr) % prime;
 	      prime += primegap[i];
 
