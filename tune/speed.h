@@ -3103,26 +3103,41 @@ int speed_routine_count_zeros_setup (struct speed_params *, mp_ptr, int, int);
 /* Calculate nextprime(n) for random n of s->size bits (not limbs). */
 #define SPEED_ROUTINE_MPZ_NEXTPRIME(function)				\
   {									\
-    unsigned  i;							\
-    mpz_t     n, wp;							\
+    unsigned  i, j;							\
+    mpz_t     wp, n;							\
     double    t;							\
 									\
-    SPEED_RESTRICT_COND (s->size >= 1);					\
+    SPEED_RESTRICT_COND (s->size >= 10);				\
 									\
     mpz_init (wp);							\
     mpz_init_set_n (n, s->xp, s->size);					\
     /* limit to s->size bits, as this function is very slow */		\
     mpz_tdiv_r_2exp (n, n, s->size);					\
+    /* set high bits so operand and result are genaral s->size bits */	\
+    mpz_setbit (n, s->size - 1);					\
+    mpz_clrbit (n, s->size - 2);					\
 									\
     speed_starttime ();							\
     i = s->reps;							\
     do									\
-      function (wp, n);							\
+      {									\
+        /* nextprime timing is variable, so average over many calls */	\
+        j = SPEED_BLOCK_SIZE - 1;					\
+        /* starts on random, after measures prime to next prime */	\
+        function (wp, n);						\
+        do								\
+          {								\
+            function (wp, wp);						\
+          }								\
+        while (--j != 0);						\
+      }									\
     while (--i != 0);							\
     t = speed_endtime ();						\
 									\
-    mpz_clear (n);							\
     mpz_clear (wp);							\
+    mpz_clear (n);							\
+									\
+    s->time_divisor = SPEED_BLOCK_SIZE;					\
     return t;								\
   }
 
