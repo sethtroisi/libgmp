@@ -33,6 +33,10 @@ see https://www.gnu.org/licenses/.  */
 #include "gmp-impl.h"
 #include "longlong.h"
 
+/* Maximum number of primes to test with trial division. */
+#define NUMBER_OF_PRIMES 167
+
+/* Gaps between primes (first gap is 5-3=2, last is 1009-997=12) */
 static const unsigned char primegap[] =
 {
   2,2,4,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,14,4,6,
@@ -43,12 +47,10 @@ static const unsigned char primegap[] =
   6,14,4,6,6,8,6,12
 };
 
-#define NUMBER_OF_PRIMES 167
-
 void
 mpz_nextprime (mpz_ptr p, mpz_srcptr n)
 {
-  unsigned short *moduli;
+  short *distance;
   unsigned long difference;
   int i;
   unsigned prime_limit;
@@ -64,8 +66,11 @@ mpz_nextprime (mpz_ptr p, mpz_srcptr n)
       mpz_set_ui (p, 2);
       return;
     }
+
+  /* Set p to next odd number */
   mpz_add_ui (p, n, 1);
   mpz_setbit (p, 0);
+
 
   if (mpz_cmp_ui (p, 7) <= 0)
     return;
@@ -73,42 +78,43 @@ mpz_nextprime (mpz_ptr p, mpz_srcptr n)
   pn = SIZ(p);
   MPN_SIZEINBASE_2EXP(nbits, PTR(p), pn, 1);
   if (nbits / 2 >= NUMBER_OF_PRIMES)
-    prime_limit = NUMBER_OF_PRIMES - 1;
+    prime_limit = NUMBER_OF_PRIMES;
   else
     prime_limit = nbits / 2;
 
   TMP_SMARK;
 
-  /* Compute residues modulo small odd primes */
-  moduli = TMP_SALLOC_TYPE (prime_limit * sizeof moduli[0], unsigned short);
+  /* Compute distance to next multiple for small odd primes */
+  distance = TMP_SALLOC_TYPE (prime_limit * sizeof distance[0], unsigned short);
 
   for (;;)
     {
-      /* FIXME: Compute lazily? */
       prime = 3;
       for (i = 0; i < prime_limit; i++)
 	{
-	  moduli[i] = mpz_tdiv_ui (p, prime);
+          distance[i] = mpz_cdiv_ui (p, prime);
+          ASSERT( distance[i] >= 0 && distance[i] < prime);
 	  prime += primegap[i];
 	}
 
-#define INCR_LIMIT 0x10000	/* deep science */
+#define INCR_LIMIT 0x4000      /* INCR_LIMIT + largest prime must fit in signed short */
 
       for (difference = incr = 0; incr < INCR_LIMIT; difference += 2)
 	{
-	  /* First check residues */
+	  /* First check small primes residues */
 	  prime = 3;
-	  for (i = 0; i < prime_limit; i++)
+	  for (i = 0; i < prime_limit; prime += primegap[i], i++)
 	    {
-	      unsigned r;
-	      /* FIXME: Reduce moduli + incr and store back, to allow for
-		 division-free reductions.  Alternatively, table primes[]'s
-		 inverses (mod 2^16).  */
-	      r = (moduli[i] + incr) % prime;
-	      prime += primegap[i];
-
-	      if (r == 0)
-		goto next;
+              while (incr > distance[i])
+                {
+                  distance[i] += prime;
+                }
+              if (distance[i] == incr)
+                {
+                  ASSERT ( (mpz_tdiv_ui(p, prime) + difference) % prime  == 0 );
+                  goto next;
+                }
+              ASSERT ( (mpz_tdiv_ui(p, prime) + difference) % prime != 0 );
 	    }
 
 	  mpz_add_ui (p, p, difference);
