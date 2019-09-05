@@ -33,6 +33,49 @@ see https://www.gnu.org/licenses/.  */
 #include "gmp-impl.h"
 #include "longlong.h"
 
+#define INCR_LIMIT 0x10000	/* deep science */
+
+/* Loop to find next/prev prime */
+#define next_prime_helper(op, function)                     		\
+  do {					                		\
+  /* compute residues modulo small odd primes */         		\
+  moduli = TMP_SALLOC_TYPE (prime_limit, unsigned short); 		\
+                                                                        \
+  for (;;)				                		\
+    {                                                                   \
+      prime = 3;                                                        \
+      for (i = 0; i < prime_limit; i++)                                 \
+	{                                                               \
+	  moduli[i] = mpz_tdiv_ui (p, prime);                           \
+	  prime += primegap[i];                                         \
+	}                                                               \
+      for (difference = incr = 0; incr < INCR_LIMIT; difference += 2)   \
+	{                                                               \
+	  /* First check residues */                                    \
+	  prime = 3;                                                    \
+	  for (i = 0; i < prime_limit; i++)                             \
+	    {                                                           \
+	      signed r;                                                 \
+              signed t = moduli[i] op incr;                             \
+	      r = t % ((int) prime);                                    \
+	      prime += primegap[i];                                     \
+	      if (r == 0)                                               \
+		goto next;                                              \
+	    }                                                           \
+	  function (p, p, difference);                                  \
+	  difference = 0;                                               \
+                                                                        \
+	  /* Miller-Rabin test */                                       \
+	  if (mpz_millerrabin (p, 25))                                  \
+	    goto done;                                                  \
+	next:;                                                          \
+	  incr += 2;                                                    \
+	}                                                               \
+      function (p, p, difference);                                      \
+      difference = 0;                                                   \
+    }									\
+  } while (0)
+
 static const unsigned char primegap[] =
 {
   2,2,4,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,14,4,6,
@@ -79,50 +122,58 @@ mpz_nextprime (mpz_ptr p, mpz_srcptr n)
 
   TMP_SMARK;
 
-  /* Compute residues modulo small odd primes */
-  moduli = TMP_SALLOC_TYPE (prime_limit * sizeof moduli[0], unsigned short);
+  /* work forwards looking for number with moduli == 0 and prime */
+  next_prime_helper (+, mpz_add_ui);
 
-  for (;;)
+ done:
+  TMP_SFREE;
+}
+
+int
+mpz_prevprime (mpz_ptr p, mpz_srcptr n)
+{
+  unsigned short *moduli;
+  unsigned long difference;
+  int i;
+  unsigned prime_limit;
+  unsigned long prime;
+  mp_size_t pn;
+  mp_bitcnt_t nbits;
+  unsigned incr;
+  TMP_SDECL;
+
+  /* handle numbers with no previous prime. */
+  if (mpz_cmp_ui (n, 2) <= 0)
+    return 0;
+
+  if (mpz_cmp_ui (n, 3) <= 0)
     {
-      /* FIXME: Compute lazily? */
-      prime = 3;
-      for (i = 0; i < prime_limit; i++)
-	{
-	  moduli[i] = mpz_tdiv_ui (p, prime);
-	  prime += primegap[i];
-	}
-
-#define INCR_LIMIT 0x10000	/* deep science */
-
-      for (difference = incr = 0; incr < INCR_LIMIT; difference += 2)
-	{
-	  /* First check residues */
-	  prime = 3;
-	  for (i = 0; i < prime_limit; i++)
-	    {
-	      unsigned r;
-	      /* FIXME: Reduce moduli + incr and store back, to allow for
-		 division-free reductions.  Alternatively, table primes[]'s
-		 inverses (mod 2^16).  */
-	      r = (moduli[i] + incr) % prime;
-	      prime += primegap[i];
-
-	      if (r == 0)
-		goto next;
-	    }
-
-	  mpz_add_ui (p, p, difference);
-	  difference = 0;
-
-	  /* Miller-Rabin test */
-	  if (mpz_millerrabin (p, 25))
-	    goto done;
-	next:;
-	  incr += 2;
-	}
-      mpz_add_ui (p, p, difference);
-      difference = 0;
+      /* previous prime for 3 == 2 */
+      mpz_set_ui (p, 2);
+      return 2;
     }
+
+  /* First odd less than n */
+  mpz_sub_ui (p, n, 2);
+  mpz_setbit (p, 0);
+
+  if (mpz_cmp_ui (p, 7) <= 0)
+    {
+      return 2;
+    }
+
+  pn = SIZ(p);
+  MPN_SIZEINBASE_2EXP(nbits, PTR(p), pn, 1);
+  if (nbits / 2 >= NUMBER_OF_PRIMES)
+    prime_limit = NUMBER_OF_PRIMES - 1;
+  else
+    prime_limit = nbits / 2;
+
+  TMP_SMARK;
+
+  /* work backwards looking for number with moduli == 0 and prime */
+  next_prime_helper (-, mpz_sub_ui);
+
  done:
   TMP_SFREE;
 }
