@@ -33,40 +33,55 @@ refmpz_nextprime (mpz_ptr p, mpz_srcptr t)
 }
 
 void
-test_hugegap ()
+test_largegap (mpz_t low, const int gap)
 {
-  /* Testing a large gap choosen from http://www.trnicely.net/#TPG
-      start = 2000497*2087#/21210 - 28874 with gap = 70862
-      takes ~50 seconds
-   */
-  mpz_t p, next, diff;
-  int gap;
-  mpz_init (p);
-  mpz_init (next);
-  mpz_init (diff);
+  mpz_t t, nxt;
 
-  mpz_primorial_ui (p, 2087);
-  mpz_divexact_ui (p, p, 21210);
-  mpz_mul_ui (p, p, 2000497);
-  mpz_sub_ui (p, p, 28874);
+  mpz_init (t);
+  mpz_init (nxt);
 
-  mpz_nextprime (next, p);
+  mpz_nextprime(nxt, low);
+  mpz_sub(t, nxt, low);
 
-  mpz_sub (diff, next, p);
-  gap = mpz_get_ui (diff);
-
-
-  if (!mpz_probab_prime_p (p, 10) || !mpz_probab_prime_p (next, 10))
-    {
-      gmp_printf ("p/next not prime, diff=%lu\n", gap);
+  if (mpz_cmp_ui(t, gap) != 0)
+     {
+      gmp_printf ("prime gap %Zd != %d\n", t, gap);
       abort ();
     }
 
-  if (gap != 70862)
-    {
-      gmp_printf ("hugegap diff discrepancy %lu != 70862\n", gap);
-      abort ();
-    }
+  mpz_clear (t);
+  mpz_clear (nxt);
+}
+
+void
+test_largegaps ()
+{
+  mpz_t x;
+
+  mpz_init (x);
+
+  /*
+  // This takes ~30 seconds, it test the deep science magic constant in
+  // nextprime.c but takes too long to be always enabled.
+  // Gap 66520 from P816 = 1931 * 1933# / 7230 - 30244
+  mpz_primorial_ui (x, 1933);
+  mpz_mul_ui (x, x, 1931);
+  mpz_divexact_ui (x, x, 7230);
+  mpz_sub_ui (x, x, 30244);
+
+  test_largegap(x, 66520);
+  */
+
+  // This takes ~3 seconds
+  // Gap 33008 from P454 = 55261931 * 1063#/210 - 13116
+  mpz_primorial_ui (x, 1063);
+  mpz_mul_ui (x, x, 55261931);
+  mpz_divexact_ui (x, x, 210);
+  mpz_sub_ui (x, x, 13116);
+
+  test_largegap(x, 33008);
+
+  mpz_clear (x);
 }
 
 void
@@ -95,8 +110,8 @@ run (const char *start, int reps, const char *end, short diffs[])
 
   if (mpz_cmp (x, y) != 0)
     {
-      gmp_printf ("got  %Zx\n", x);
-      gmp_printf ("want %Zx\n", y);
+      gmp_printf ("got  %Zd\n", x);
+      gmp_printf ("want %Zd\n", y);
       abort ();
     }
 
@@ -110,17 +125,51 @@ extern short diff4[];
 extern short diff5[];
 extern short diff6[];
 
+void
+test_ref(gmp_randstate_ptr rands, int reps) {
+  int i;
+  mpz_t bs, x, next_p, ref_next_p;
+  unsigned long size_range;
+
+  mpz_init (bs);
+  mpz_init (x);
+  mpz_init (next_p);
+  mpz_init (ref_next_p);
+
+  for (i = 0; i < reps; i++)
+    {
+      mpz_urandomb (bs, rands, 32);
+      size_range = mpz_get_ui (bs) % 8 + 2; /* 0..1024 bit operands */
+
+      mpz_urandomb (bs, rands, size_range);
+      mpz_rrandomb (x, rands, mpz_get_ui (bs));
+
+/*      gmp_printf ("%ld: %Zd\n", mpz_sizeinbase (x, 2), x); */
+
+      mpz_nextprime (next_p, x);
+      refmpz_nextprime (ref_next_p, x);
+      if (mpz_cmp (next_p, ref_next_p) != 0)
+	abort ();
+    }
+
+  mpz_clear (bs);
+  mpz_clear (x);
+  mpz_clear (next_p);
+  mpz_clear (ref_next_p);
+}
+
 int
 main (int argc, char **argv)
 {
-  int i;
-  int reps = 20;
   gmp_randstate_ptr rands;
-  mpz_t bs, x, nxtp, ref_nxtp;
-  unsigned long size_range;
+  int reps = 500;
 
   tests_start();
+
   rands = RANDS;
+  TESTS_REPS (reps, argv, argc);
+
+  test_ref(rands, reps);
 
   run ("2", 1000, "0x1ef7", diff1);
 
@@ -138,35 +187,8 @@ main (int argc, char **argv)
   run ("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80", 50, /* 2^128 - 128 */
        "0x10000000000000000000000000000155B", diff6);
 
-  mpz_init (bs);
-  mpz_init (x);
-  mpz_init (nxtp);
-  mpz_init (ref_nxtp);
 
-  TESTS_REPS (reps, argv, argc);
-
-  for (i = 0; i < reps; i++)
-    {
-      mpz_urandomb (bs, rands, 32);
-      size_range = mpz_get_ui (bs) % 8 + 2; /* 0..1024 bit operands */
-
-      mpz_urandomb (bs, rands, size_range);
-      mpz_rrandomb (x, rands, mpz_get_ui (bs));
-
-/*      gmp_printf ("%ld: %Zd\n", mpz_sizeinbase (x, 2), x); */
-
-      mpz_nextprime (nxtp, x);
-      refmpz_nextprime (ref_nxtp, x);
-      if (mpz_cmp (nxtp, ref_nxtp) != 0)
-	abort ();
-    }
-
-  mpz_clear (bs);
-  mpz_clear (x);
-  mpz_clear (nxtp);
-  mpz_clear (ref_nxtp);
-
-  test_hugegap ();
+  test_largegaps ();
 
   tests_end ();
   return 0;
