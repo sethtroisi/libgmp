@@ -61,21 +61,18 @@ test_largegaps ()
   mpz_init (x);
 
   // This takes ~3 seconds on a fast computer.
-  // Gap 33008 from P454 = 55261931 * 1063#/210 - 13116
-  mpz_primorial_ui (x, 1063);
-  mpz_mul_ui (x, x, 55261931);
+  // Gap 35308 from P404 = 100054841 * 953#/210 - 9670
+  mpz_primorial_ui (x, 953);
+  mpz_mul_ui (x, x, 100054841);
   mpz_divexact_ui (x, x, 210);
-  mpz_sub_ui (x, x, 13116);
+  mpz_sub_ui (x, x, 9670);
 
-  test_largegap(x, 33008);
+  test_largegap(x, 35308);
 
-  mpz_clear (x);
-
-
-  /*
-  // This takes ~30 seconds, it test the deep science magic constant in
+  // This takes ~30 seconds, it tests the deep science magic constant in
   // nextprime.c but takes too long to be always enabled.
   // Gap 66520 from P816 = 1931 * 1933# / 7230 - 30244
+  /*
   mpz_primorial_ui (x, 1933);
   mpz_mul_ui (x, x, 1931);
   mpz_divexact_ui (x, x, 7230);
@@ -84,6 +81,7 @@ test_largegaps ()
   test_largegap(x, 66520);
   */
 
+  mpz_clear (x);
 }
 
 void
@@ -128,7 +126,8 @@ extern short diff5[];
 extern short diff6[];
 
 void
-test_ref(gmp_randstate_ptr rands, int reps) {
+test_ref(gmp_randstate_ptr rands, int reps)
+{
   int i;
   mpz_t bs, x, next_p, ref_next_p;
   unsigned long size_range;
@@ -190,7 +189,7 @@ main (int argc, char **argv)
        "0x10000000000000000000000000000155B", diff6);
 
   // Too slow to include in normal testing.
-  //test_largegaps ();
+  // test_largegaps ();
 
   tests_end ();
   return 0;
