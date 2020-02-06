@@ -33,6 +33,23 @@ refmpz_nextprime (mpz_ptr p, mpz_srcptr t)
 }
 
 void
+refmpz_prevprime (mpz_ptr p, mpz_srcptr t)
+{
+  if (mpz_cmp_ui(t, 2) <= 0)
+    return;
+
+  if (mpz_cmp_ui(t, 3) <= 0)
+    {
+      mpz_set_ui (p, 2);
+      return;
+    }
+
+  mpz_sub_ui (p, t, 1L);
+  while (! mpz_probab_prime_p (p, 10))
+    mpz_sub_ui (p, p, 1L);
+}
+
+void
 run (const char *start, int reps, const char *end, short diffs[])
 {
   mpz_t x, y;
@@ -67,6 +84,44 @@ run (const char *start, int reps, const char *end, short diffs[])
   mpz_clear (x);
 }
 
+void
+run_p (const char *start, int reps, const char *end, short diffs[])
+{
+  mpz_t x, y;
+  int i;
+
+  mpz_init_set_str (x, end, 0);
+  mpz_init (y);
+
+  // Last rep doesn't share same data with nextprime
+  for (i = 0; i < reps - 1; i++)
+    {
+      mpz_prevprime (y, x);
+      mpz_sub (x, x, y);
+      if (diffs != NULL &&
+	  (! mpz_fits_sshort_p (x) || diffs[reps - i - 1] != (short) mpz_get_ui (x)))
+	{
+	  gmp_printf ("diff list discrepancy\n");
+	  abort ();
+	}
+      mpz_swap (x, y);
+    }
+
+  // starts aren't always prime, so check that result is less than or equal
+  mpz_prevprime(x, x);
+
+  mpz_set_str(y, start, 0);
+  if (mpz_cmp (x, y) > 0)
+    {
+      gmp_printf ("got  %Zd\n", x);
+      gmp_printf ("want %Zd\n", y);
+      abort ();
+    }
+
+  mpz_clear (y);
+  mpz_clear (x);
+}
+
 extern short diff1[];
 extern short diff3[];
 extern short diff4[];
@@ -74,16 +129,18 @@ extern short diff5[];
 extern short diff6[];
 
 void
-test_ref(gmp_randstate_ptr rands, int reps)
+test_ref (gmp_randstate_ptr rands, int reps,
+          void (*func)(mpz_t, const mpz_t),
+          void(*ref_func)(mpz_t, const mpz_t))
 {
   int i;
-  mpz_t bs, x, next_p, ref_next_p;
+  mpz_t bs, x, test_p, ref_p;
   unsigned long size_range;
 
   mpz_init (bs);
   mpz_init (x);
-  mpz_init (next_p);
-  mpz_init (ref_next_p);
+  mpz_init (test_p);
+  mpz_init (ref_p);
 
   for (i = 0; i < reps; i++)
     {
@@ -93,31 +150,21 @@ test_ref(gmp_randstate_ptr rands, int reps)
       mpz_urandomb (bs, rands, size_range);
       mpz_rrandomb (x, rands, mpz_get_ui (bs));
 
-      mpz_nextprime (next_p, x);
-      refmpz_nextprime (ref_next_p, x);
-      if (mpz_cmp (next_p, ref_next_p) != 0)
+      func (test_p, x);
+      ref_func (ref_p, x);
+      if (mpz_cmp (test_p, ref_p) != 0)
 	abort ();
     }
 
   mpz_clear (bs);
   mpz_clear (x);
-  mpz_clear (next_p);
-  mpz_clear (ref_next_p);
+  mpz_clear (test_p);
+  mpz_clear (ref_p);
 }
 
-int
-main (int argc, char **argv)
+void
+test_nextprime (gmp_randstate_ptr rands, int reps)
 {
-  gmp_randstate_ptr rands;
-  int reps = 20;
-
-  tests_start();
-
-  rands = RANDS;
-  TESTS_REPS (reps, argv, argc);
-
-  test_ref(rands, reps);
-
   run ("2", 1000, "0x1ef7", diff1);
 
   run ("3", 1000 - 1, "0x1ef7", NULL);
@@ -133,6 +180,71 @@ main (int argc, char **argv)
 
   run ("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80", 50, /* 2^128 - 128 */
        "0x10000000000000000000000000000155B", diff6);
+
+  test_ref(rands, reps, mpz_nextprime, refmpz_nextprime);
+}
+
+void
+test_prevprime (gmp_randstate_ptr rands, int reps)
+{
+  int i, retval;
+  mpz_t x, prvp;
+
+  run_p ("2", 1000, "0x1ef7", diff1);
+
+  run_p ("3", 1000 - 1, "0x1ef7", NULL);
+
+  run_p ("0x8a43866f5776ccd5b02186e90d28946aeb0ed914", 50,
+         "0x8a43866f5776ccd5b02186e90d28946aeb0eeec5", diff3);
+
+  run_p ("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6C", 50, /* 2^148 - 148 */
+         "0x100000000000000000000000000000000010ab", diff4);
+
+  run_p ("0x1c2c26be55317530311facb648ea06b359b969715db83292ab8cf898d8b1b", 50,
+         "0x1c2c26be55317530311facb648ea06b359b969715db83292ab8cf898da957", diff5);
+
+  run_p ("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80", 50, /* 2^128 - 128 */
+         "0x10000000000000000000000000000155B", diff6);
+
+  // Cast away int return from mpz_prevprime for test ref.
+  test_ref(
+      rands, reps,
+      (void (*)(mpz_t, const mpz_t)) mpz_prevprime,
+      refmpz_prevprime);
+
+  // Test mpz_prevprime(x <= 2) returns 0, leaves rop unchanged.
+  mpz_init (x);
+  mpz_init (prvp);
+  mpz_set_ui (prvp, 123);
+
+  for (i = -10; i <= 2; i++)
+    {
+      mpz_set_si(x, i);
+      retval = mpz_prevprime (prvp, x);
+      if ( retval != 0 || mpz_get_si (prvp) != 123 )
+        {
+	  gmp_printf ("mpz_prevprime(%Zd) return (%d) rop (%Zd)\n", x, prvp );
+	  abort ();
+        }
+    }
+
+  mpz_clear (x);
+  mpz_clear (prvp);
+}
+
+int
+main (int argc, char **argv)
+{
+  gmp_randstate_ptr rands;
+  int reps = 20;
+
+  tests_start();
+
+  rands = RANDS;
+  TESTS_REPS (reps, argv, argc);
+
+  test_nextprime(rands, reps);
+  test_prevprime(rands, reps);
 
   tests_end ();
   return 0;
