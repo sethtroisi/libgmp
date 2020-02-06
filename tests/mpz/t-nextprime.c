@@ -58,8 +58,8 @@ run (const char *start, int reps, const char *end, short diffs[])
 
   if (mpz_cmp (x, y) != 0)
     {
-      gmp_printf ("got  %Zx\n", x);
-      gmp_printf ("want %Zx\n", y);
+      gmp_printf ("got  %Zd\n", x);
+      gmp_printf ("want %Zd\n", y);
       abort ();
     }
 
@@ -73,17 +73,50 @@ extern short diff4[];
 extern short diff5[];
 extern short diff6[];
 
+void
+test_ref(gmp_randstate_ptr rands, int reps)
+{
+  int i;
+  mpz_t bs, x, next_p, ref_next_p;
+  unsigned long size_range;
+
+  mpz_init (bs);
+  mpz_init (x);
+  mpz_init (next_p);
+  mpz_init (ref_next_p);
+
+  for (i = 0; i < reps; i++)
+    {
+      mpz_urandomb (bs, rands, 32);
+      size_range = mpz_get_ui (bs) % 8 + 2; /* 0..1024 bit operands */
+
+      mpz_urandomb (bs, rands, size_range);
+      mpz_rrandomb (x, rands, mpz_get_ui (bs));
+
+      mpz_nextprime (next_p, x);
+      refmpz_nextprime (ref_next_p, x);
+      if (mpz_cmp (next_p, ref_next_p) != 0)
+	abort ();
+    }
+
+  mpz_clear (bs);
+  mpz_clear (x);
+  mpz_clear (next_p);
+  mpz_clear (ref_next_p);
+}
+
 int
 main (int argc, char **argv)
 {
-  int i;
-  int reps = 20;
   gmp_randstate_ptr rands;
-  mpz_t bs, x, nxtp, ref_nxtp;
-  unsigned long size_range;
+  int reps = 20;
 
   tests_start();
+
   rands = RANDS;
+  TESTS_REPS (reps, argv, argc);
+
+  test_ref(rands, reps);
 
   run ("2", 1000, "0x1ef7", diff1);
 
@@ -100,34 +133,6 @@ main (int argc, char **argv)
 
   run ("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80", 50, /* 2^128 - 128 */
        "0x10000000000000000000000000000155B", diff6);
-
-  mpz_init (bs);
-  mpz_init (x);
-  mpz_init (nxtp);
-  mpz_init (ref_nxtp);
-
-  TESTS_REPS (reps, argv, argc);
-
-  for (i = 0; i < reps; i++)
-    {
-      mpz_urandomb (bs, rands, 32);
-      size_range = mpz_get_ui (bs) % 8 + 2; /* 0..1024 bit operands */
-
-      mpz_urandomb (bs, rands, size_range);
-      mpz_rrandomb (x, rands, mpz_get_ui (bs));
-
-/*      gmp_printf ("%ld: %Zd\n", mpz_sizeinbase (x, 2), x); */
-
-      mpz_nextprime (nxtp, x);
-      refmpz_nextprime (ref_nxtp, x);
-      if (mpz_cmp (nxtp, ref_nxtp) != 0)
-	abort ();
-    }
-
-  mpz_clear (bs);
-  mpz_clear (x);
-  mpz_clear (nxtp);
-  mpz_clear (ref_nxtp);
 
   tests_end ();
   return 0;
